@@ -619,11 +619,14 @@ class VulnscanManager(object):
 		call_back_end = kwargs.get("callback_end", None)
 		call_back_progress = kwargs.get("callback_progress", None)
 
+		custom_scan_prefix = kwargs.get("custom_scan_prefix", "openvas_lib_scan")
+		custom_target_prefix = kwargs.get("custom_target_prefix", "openvas_lib_target")
+
 		# Generate the random names used
-		m_job_name_tmp = "openvas_lib_scan_%s_%s" % (target, generate_random_string(20))
+		m_job_name_tmp = "%s_%s_%s" % (custom_scan_prefix, target, generate_random_string(20))
 		m_job_name = str(kwargs.get("scan_name", m_job_name_tmp))
 
-		m_target_name_tmp = "openvas_lib_target_%s_%s" % (target, generate_random_string(20))
+		m_target_name_tmp = "%s_%s_%s" % (custom_target_prefix, target, generate_random_string(20))
 		m_target_name = str(kwargs.get("target_name", m_target_name_tmp))
 
 		try:
@@ -674,20 +677,23 @@ class VulnscanManager(object):
 		except ServerError as e:
 			raise VulnscanScanError("The target selected doesnn't exist in the server. Error: %s" % e.message)
 
-		# Start the scan
-		try:
-			m_task_start_response = self.__manager.start_task(m_task_id)
-			self.__task_report_id = m_task_start_response.find("report_id").text
-		except ServerError as e:
-			raise VulnscanScanError(
-				"Unknown error while try to start the task '%s'. Error: %s" % (m_task_id, e.message))
+		autostart = kwargs.get("autostart", False)
 
-		# Callback is set?
-		if call_back_end or call_back_progress:
-			# schedule a function to run each 10 seconds to check the estate in the server
-			self.__task_id = m_task_id
-			self.__target_id = m_target_id
-			self.__function_handle = self._callback(call_back_end, call_back_progress)
+		if autostart:
+			# Start the scan
+			try:
+				m_task_start_response = self.__manager.start_task(m_task_id)
+				self.__task_report_id = m_task_start_response.find("report_id").text
+			except ServerError as e:
+				raise VulnscanScanError(
+					"Unknown error while try to start the task '%s'. Error: %s" % (m_task_id, e.message))
+
+			# Callback is set?
+			if call_back_end or call_back_progress:
+				# schedule a function to run each 10 seconds to check the estate in the server
+				self.__task_id = m_task_id
+				self.__target_id = m_target_id
+				self.__function_handle = self._callback(call_back_end, call_back_progress)
 
 		return m_task_id, m_target_id
 

@@ -330,7 +330,7 @@ class ConnectionManager(object):
 				tree = etree.ElementTree()
 				return tree
 
-			# Return the parsed response.
+			# Return the td response.
 			return tree
 
 	# ----------------------------------------------------------------------
