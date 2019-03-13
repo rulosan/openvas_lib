@@ -697,6 +697,22 @@ class VulnscanManager(object):
 
 		return m_task_id, m_target_id
 
+	#----------------------------------------------------------------------
+	def start_task(self, task_id):
+		"""
+		:param task_id: OpenVAS task ID with previous setup
+		:return task_start_response: Response of the server.
+		"""
+		if type(task_id) == str:
+			try:
+				task_start_response = self.__manager.start_task(task_id)
+			except ServerError as err:
+				raise VulnscanScanError(
+					"Unknown error while try to start the task '%s'. Error: %s" % (task_id, err.message))
+			else:
+				return task_start_response
+		return None
+
 	# ----------------------------------------------------------------------
 	@property
 	def task_id(self):
